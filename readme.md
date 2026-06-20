@@ -51,3 +51,20 @@ When a GitHub issue is opened, a Flue agent (`.github/workflows/fix-issue.yml`) 
 2. **Allow GitHub Actions to create pull requests** — Settings → Actions → General → Workflow permissions → check "Allow GitHub Actions to create and approve pull requests"
 
 3. **Ensure `jfrog/fly-action@v1` is configured** (already in the CI workflow) — this provides OIDC auth for Docker and npm publishing
+
+## Automated PR Review Agent
+
+When a pull request is opened or updated, a Flue agent (`.github/workflows/review-pr.yml`) reviews the diff for code quality, correctness, security, scope, and documentation, then posts a review using the Mistral `mistral-medium-3.5` model.
+
+### What it checks
+
+- **Issue reference** — PRs must reference an issue (`Closes #N`, `Fixes #N`, `Resolves #N`)
+- **Code quality** — compilation errors, unused imports, debug statements, convention adherence
+- **Correctness** — does the PR address the issue, edge cases, potential bugs
+- **Security** — committed secrets, SQL injection, XSS, dangerous patterns
+- **Scope** — minimal/focused diff, no unrelated changes, no committed build artifacts
+- **Documentation** — PR description quality, README updates where needed
+
+### Setup
+
+Uses the same `MISTRAL_API_KEY` repository secret as the fix agent. No additional setup required.
