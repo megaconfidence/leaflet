@@ -38,6 +38,6 @@ jobs:
 
       - name: Publish to Fly npm registry
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          npm config set //${{ env.FLY_REGISTRY_SUBDOMAIN }}/artifactory/api/npm/npm/:_authToken "${{ env.FLY_ACCESS_TOKEN }}"
-          npm publish --registry "https://${{ env.FLY_REGISTRY_SUBDOMAIN }}/artifactory/api/npm/npm"
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
