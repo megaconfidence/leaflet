@@ -8,7 +8,7 @@ const agent = createAgent(() => ({
       GH_TOKEN: process.env.GH_TOKEN,
     },
   }),
-  model: 'mistral/mistral-medium-3-5',
+  model: 'mistral/mistral-medium-3.5',
 }));
 
 export async function run({ init, payload }: FlueContext<{ issueNumber: number }>) {
