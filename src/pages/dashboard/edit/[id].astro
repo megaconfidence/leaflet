@@ -1,0 +1,83 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { db, schema } from '../../../db';
+import { eq } from 'drizzle-orm';
+import { getUserFromContext } from '../../../lib/astro';
+
+const user = getUserFromContext(Astro);
+
+if (!user) {
+  return Astro.redirect('/login?error=auth_required');
+}
+
+const postId = Number(Astro.params.id);
+const error = Astro.url.searchParams.get('error');
+const success = Astro.url.searchParams.get('success');
+
+const post = db
+  .select()
+  .from(schema.posts)
+  .where(eq(schema.posts.id, postId))
+  .all()[0];
+
+if (!post || post.authorId !== user.id) {
+  return Astro.redirect('/dashboard?error=not_found');
+}
+
+const errorMessages: Record<string, string> = {
+  missing_fields: 'Title and content are required.',
+  not_found: 'Post not found.',
+};
+
+const successMessages: Record<string, string> = {
+  saved: 'Post saved.',
+  published: 'Post is now live!',
+  unpublished: 'Post moved back to draft.',
+};
+---
+
+<Layout title="Edit Post">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1>Edit Post</h1>
+    <span class={`badge badge-${post.status}`}>{post.status}</span>
+  </div>
+
+  {error && <div class="alert alert-error">{errorMessages[error] || 'Something went wrong.'}</div>}
+  {success && <div class="alert alert-success">{successMessages[success] || 'Done.'}</div>}
+
+  <form method="POST" action={`/api/posts/${post.id}`}>
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" value={post.title} required />
+    </div>
+    <div class="form-group">
+      <label for="content">Content</label>
+      <textarea id="content" name="content" required>{post.content}</textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="primary">Save Changes</button>
+      {post.status === 'published' && (
+        <a href={`/posts/${post.id}`} class="btn secondary">View Post</a>
+      )}
+    </div>
+  </form>
+
+  <div class="form-actions" style="margin-top: 16px;">
+    {post.status === 'draft' ? (
+      <form method="POST" action={`/api/posts/${post.id}/publish`}>
+        <button type="submit" class="secondary">Publish</button>
+      </form>
+    ) : (
+      <form method="POST" action={`/api/posts/${post.id}/unpublish`}>
+        <button type="submit" class="secondary">Unpublish</button>
+      </form>
+    )}
+  </div>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <form method="POST" action={`/api/posts/${post.id}/delete`}
+          onsubmit="return confirm('Delete this post? This cannot be undone.')">
+      <button type="submit" class="danger">Delete Post</button>
+    </form>
+  </div>
+</Layout>

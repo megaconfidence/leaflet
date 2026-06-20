@@ -1,0 +1,73 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { db, schema } from '../../db';
+import { eq, desc } from 'drizzle-orm';
+import { getUserFromContext } from '../../lib/astro';
+
+const user = getUserFromContext(Astro);
+
+if (!user) {
+  return Astro.redirect('/login?error=auth_required');
+}
+
+const success = Astro.url.searchParams.get('success');
+const successMessages: Record<string, string> = {
+  deleted: 'Post deleted.',
+};
+
+const myPosts = db
+  .select({
+    id: schema.posts.id,
+    title: schema.posts.title,
+    status: schema.posts.status,
+    updatedAt: schema.posts.updatedAt,
+    publishedAt: schema.posts.publishedAt,
+  })
+  .from(schema.posts)
+  .where(eq(schema.posts.authorId, user.id))
+  .orderBy(desc(schema.posts.updatedAt))
+  .all();
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Layout title="Dashboard">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+    <h1>Your Posts</h1>
+    <a href="/dashboard/new" class="btn primary">New Post</a>
+  </div>
+
+  {success && <div class="alert alert-success">{successMessages[success] || 'Done.'}</div>}
+
+  {myPosts.length === 0 ? (
+    <div class="empty-state">
+      <p>You haven't written any posts yet.</p>
+      <p style="margin-top: 12px;"><a href="/dashboard/new">Write your first post →</a></p>
+    </div>
+  ) : (
+    <div>
+      {myPosts.map((post) => (
+        <article class="post-card">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+              <h2><a href={`/dashboard/edit/${post.id}`}>{post.title}</a></h2>
+              <div class="post-meta">
+                <span class={`badge badge-${post.status}`}>{post.status}</span>
+                {' '}
+                Updated {formatDate(post.updatedAt)}
+              </div>
+            </div>
+            <div class="dashboard-actions">
+              <a href={`/dashboard/edit/${post.id}`} class="btn secondary" style="font-size: 0.85rem;">Edit</a>
+              {post.status === 'published' && (
+                <a href={`/posts/${post.id}`} class="btn secondary" style="font-size: 0.85rem;">View</a>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  )}
+</Layout>

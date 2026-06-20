@@ -1,0 +1,96 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { db, schema } from '../../db';
+import { eq, desc } from 'drizzle-orm';
+import { getUserFromContext } from '../../lib/astro';
+
+const postId = Number(Astro.params.id);
+const error = Astro.url.searchParams.get('error');
+
+const post = db
+  .select({
+    id: schema.posts.id,
+    title: schema.posts.title,
+    content: schema.posts.content,
+    status: schema.posts.status,
+    publishedAt: schema.posts.publishedAt,
+    createdAt: schema.posts.createdAt,
+    authorName: schema.users.username,
+    authorId: schema.posts.authorId,
+  })
+  .from(schema.posts)
+  .innerJoin(schema.users, eq(schema.posts.authorId, schema.users.id))
+  .where(eq(schema.posts.id, postId))
+  .all()[0];
+
+if (!post || post.status !== 'published') {
+  return Astro.redirect('/');
+}
+
+const user = getUserFromContext(Astro);
+
+const postComments = db
+  .select({
+    id: schema.comments.id,
+    content: schema.comments.content,
+    createdAt: schema.comments.createdAt,
+    authorName: schema.users.username,
+  })
+  .from(schema.comments)
+  .innerJoin(schema.users, eq(schema.comments.authorId, schema.users.id))
+  .where(eq(schema.comments.postId, postId))
+  .orderBy(desc(schema.comments.createdAt))
+  .all();
+
+function formatDate(date: Date | null): string {
+  if (!date) return '';
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function formatTime(date: Date): string {
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+---
+
+<Layout title={post.title}>
+  <article>
+    <h1>{post.title}</h1>
+    <div class="post-meta">
+      By {post.authorName} · {formatDate(post.publishedAt)}
+    </div>
+    <div class="post-content">{post.content}</div>
+  </article>
+
+  <section id="comments">
+    <h2 class="section-title">Comments ({postComments.length})</h2>
+
+    {error === 'comment_empty' && <div class="alert alert-error">Comment cannot be empty.</div>}
+
+    {postComments.length === 0 ? (
+      <p style="color: var(--text-muted); padding: 16px 0;">No comments yet. Be the first to share your thoughts.</p>
+    ) : (
+      <div>
+        {postComments.map((comment) => (
+          <div class="comment">
+            <div class="comment-meta"><strong>{comment.authorName}</strong> · {formatTime(comment.createdAt)}</div>
+            <div class="comment-body">{comment.content}</div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {user ? (
+      <form method="POST" action={`/api/posts/${postId}/comments`} style="margin-top: 24px;">
+        <div class="form-group">
+          <label for="comment">Add a comment</label>
+          <textarea id="comment" name="content" placeholder="Write your comment..." style="min-height: 100px;" required></textarea>
+        </div>
+        <button type="submit" class="primary">Post Comment</button>
+      </form>
+    ) : (
+      <p style="margin-top: 24px; color: var(--text-muted);">
+        <a href="/login">Log in</a> to leave a comment.
+      </p>
+    )}
+  </section>
+</Layout>
