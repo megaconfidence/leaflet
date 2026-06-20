@@ -2,6 +2,10 @@
 
 A simple blog with Astro, Hono, and SQLite.
 
+# updates readme
+
+Lol what's up this is so awesome and I like it lol. I love you ha, ha ha
+
 ## Features
 
 - Username-only sign-in (no passwords)
@@ -29,10 +33,10 @@ Data is stored in a named Docker volume (`leaflet-data`) and will persist across
 
 ## Environment Variables
 
-| Variable          | Default                     | Description                          |
-|-------------------|-----------------------------|--------------------------------------|
-| `AUTH_SECRET`     | `leaflet-dev-secret...`     | HMAC secret for session signing      |
-| `DATABASE_PATH`   | `/app/data/blog.db`         | SQLite file location                 |
+| Variable        | Default                 | Description                     |
+| --------------- | ----------------------- | ------------------------------- |
+| `AUTH_SECRET`   | `leaflet-dev-secret...` | HMAC secret for session signing |
+| `DATABASE_PATH` | `/app/data/blog.db`     | SQLite file location            |
 
 **Important:** Change `AUTH_SECRET` in production.
 
