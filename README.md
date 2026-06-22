@@ -4,6 +4,8 @@ A simple blog app built with Astro, Hono, and SQLite. Username-only auth, draft/
 
 **Live:** [leaflet.conflare.workers.dev](https://leaflet.conflare.workers.dev/)
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/megaconfidence/leaflet)
+
 ## Features
 
 - Username-only sign-in (no passwords)
