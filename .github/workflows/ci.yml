@@ -36,8 +36,6 @@ jobs:
         run: |
           docker push "${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/leaflet:${{ github.sha }}"
 
-      # - name: Publish to Fly npm registry
-      #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      #   run: |
-      #     echo "//${FLY_REGISTRY_SUBDOMAIN}/artifactory/api/npm/npm/:_authToken=${FLY_ACCESS_TOKEN}" >> ~/.npmrc
-      #     npm publish
+      - name: Publish to Fly npm registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm publish

@@ -13,12 +13,13 @@ Given the issue number in the arguments:
 6. Apply the minimal fix needed to resolve the issue
 7. Run `npm run build` to verify the changes compile
 8. If the build fails, iterate on the fix until it passes (max 3 attempts)
-9. Commit the changes with a clear message referencing the issue (e.g. `fix: resolve #<number> — <short description>`)
-10. Push the branch
-11. Open a pull request using `gh pr create` with:
+9. Bump the patch version with `npm version patch --no-git-tag-version` so CI publish won't fail on an existing version
+10. Commit the changes with a clear message referencing the issue (e.g. `fix: resolve #<number> — <short description>`)
+11. Push the branch
+12. Open a pull request using `gh pr create` with:
     - Title: `fix: resolve #<number>`
     - Body: include the diagnosis, what was changed, and `Closes #<number>`
-12. Return the PR URL
+13. Return the PR URL
 
 Important constraints:
 - Set git identity before committing: `git config user.email "actions@github.com" && git config user.name "github-actions[bot]"`

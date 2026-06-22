@@ -20,6 +20,27 @@ Lol what's up this is so awesome and I like it lol. I love you ha, ha ha
 - **Database:** SQLite (better-sqlite3 + Drizzle ORM)
 - **Auth:** Signed HMAC cookies
 
+## Local Development
+
+Dependencies are resolved through the JFrog Fly npm registry. The project includes a `.npmrc` that points npm at the Fly registry.
+
+### Prerequisites
+
+Install the [Fly App](https://fly.jfrog.ai) and enable npm — this automatically configures auth in your `~/.npmrc`. Alternatively, manually add your Fly access token:
+
+```ini
+//megaconfidence.jfrog.io/artifactory/api/npm/npm/:_authToken=<your-token>
+```
+
+### Install & Run
+
+```bash
+npm install
+npm run dev
+```
+
+Visit http://localhost:4321
+
 ## Run with Docker
 
 ```bash
@@ -62,8 +83,8 @@ When a pull request is opened or updated, a Flue agent (`.github/workflows/revie
 
 ### What it checks
 
-- **Issue reference** — PRs must reference an issue (`Closes #N`, `Fixes #N`, `Resolves #N`)
-- **Code quality** — compilation errors, unused imports, debug statements, convention adherence
+- **Issue reference** — notes if the PR references an issue (`Closes #N`, `Fixes #N`, `Resolves #N`); informational, not blocking
+- **Code quality** — compilation errors, unused imports, debug statements, convention adherence, [Conventional Commits](https://www.conventionalcommits.org/) compliance
 - **Correctness** — does the PR address the issue, edge cases, potential bugs
 - **Security** — committed secrets, SQL injection, XSS, dangerous patterns
 - **Scope** — minimal/focused diff, no unrelated changes, no committed build artifacts

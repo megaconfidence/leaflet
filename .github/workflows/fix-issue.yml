@@ -12,12 +12,16 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Setup JFrog Fly
+        uses: jfrog/fly-action@v1
 
       - run: npm ci
 

@@ -40,6 +40,11 @@ Given the PR number in the arguments:
 - Is the README updated if the change affects setup or usage?
 - Are comments needed for non-obvious logic?
 
+### Version Bump
+- Check if the PR includes a version bump in `package.json` (compare against `main` branch)
+- If no version bump is present, run `npm version patch --no-git-tag-version`, commit with `chore: bump version`, and push to the PR branch
+- This ensures CI publish won't fail when the PR is merged to `main`
+
 5. Post a review using `gh pr review <number> --<verdict> --body "<review body>"` where:
    - `verdict` is `approve` if no critical issues or warnings were found
    - `verdict` is `request_changes` if any critical issues were found
