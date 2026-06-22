@@ -1,0 +1,10 @@
+node_modules
+dist
+data
+.git
+.env
+.DS_Store
+.npmrc
+.wrangler
+wrangler.jsonc
+worker-configuration.d.ts

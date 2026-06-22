@@ -1,0 +1,14 @@
+services:
+  leaflet:
+    build: .
+    ports:
+      - "4321:4321"
+    volumes:
+      - leaflet-data:/app/data
+    environment:
+      - AUTH_SECRET=change-this-secret-in-production
+      - DATABASE_PATH=/app/data/blog.db
+    restart: unless-stopped
+
+volumes:
+  leaflet-data:

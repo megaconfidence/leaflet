@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { db, schema } from '../db';
+import { eq, desc } from 'drizzle-orm';
+
+const publishedPosts = db
+  .select({
+    id: schema.posts.id,
+    title: schema.posts.title,
+    content: schema.posts.content,
+    publishedAt: schema.posts.publishedAt,
+    authorName: schema.users.username,
+  })
+  .from(schema.posts)
+  .innerJoin(schema.users, eq(schema.posts.authorId, schema.users.id))
+  .where(eq(schema.posts.status, 'published'))
+  .orderBy(desc(schema.posts.publishedAt))
+  .all();
+
+function formatDate(date: Date | null): string {
+  if (!date) return '';
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function excerpt(content: string, length = 200): string {
+  return content.length > length ? content.slice(0, length).trimEnd() + '...' : content;
+}
+---
+
+<Layout>
+  <h1>Recent Posts</h1>
+  {publishedPosts.length === 0 ? (
+    <div class="empty-state">
+      <p>No posts have been published yet.</p>
+    </div>
+  ) : (
+    <div>
+      {publishedPosts.map((post) => (
+        <article class="post-card">
+          <h2><a href={`/posts/${post.id}`}>{post.title}</a></h2>
+          <div class="post-meta">By {post.authorName} · {formatDate(post.publishedAt)}</div>
+          <p class="excerpt">{excerpt(post.content)}</p>
+        </article>
+      ))}
+    </div>
+  )}
+</Layout>
