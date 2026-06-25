@@ -1,1 +1,4 @@
-npm run build
+npm run build || exit 1
+[ -n "$CI" ] && exit 0
+npm version patch --no-git-tag-version
+git add package.json package-lock.json
