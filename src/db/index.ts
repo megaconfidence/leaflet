@@ -39,6 +39,14 @@ sqlite.exec(`
     content TEXT NOT NULL,
     created_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS reactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL REFERENCES posts(id),
+    author_id INTEGER NOT NULL REFERENCES users(id),
+    emoji TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
 `);
 
 export const db: BetterSQLite3Database<typeof schema> = drizzle(sqlite, { schema });

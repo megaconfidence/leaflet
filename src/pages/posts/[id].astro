@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { db, schema } from '../../db';
 import { eq, desc } from 'drizzle-orm';
 import { getUserFromContext } from '../../lib/astro';
+import { ALLOWED_REACTIONS } from '../../lib/api';
 
 const postId = Number(Astro.params.id);
 const error = Astro.url.searchParams.get('error');
@@ -42,6 +43,22 @@ const postComments = db
   .orderBy(desc(schema.comments.createdAt))
   .all();
 
+const postReactions = db
+  .select({
+    emoji: schema.reactions.emoji,
+    authorId: schema.reactions.authorId,
+  })
+  .from(schema.reactions)
+  .where(eq(schema.reactions.postId, postId))
+  .all();
+
+const reactionCounts = new Map<string, number>();
+for (const reaction of postReactions) {
+  reactionCounts.set(reaction.emoji, (reactionCounts.get(reaction.emoji) || 0) + 1);
+}
+const userReaction = user ? postReactions.find((r) => r.authorId === user.id)?.emoji || null : null;
+const totalReactions = postReactions.length;
+
 function formatDate(date: Date | null): string {
   if (!date) return '';
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -60,6 +77,34 @@ function formatTime(date: Date): string {
     </div>
     <div class="post-content">{post.content}</div>
   </article>
+
+  <section id="reactions">
+    <h2 class="section-title">Reactions ({totalReactions})</h2>
+
+    {error === 'invalid_reaction' && <div class="alert alert-error">Please choose a reaction from the preset.</div>}
+
+    <div class="reactions-bar">
+      {ALLOWED_REACTIONS.map((emoji) => {
+        const count = reactionCounts.get(emoji) || 0;
+        const selected = userReaction === emoji;
+        return (
+          <form method="POST" action={`/api/posts/${postId}/reactions`} class="reaction-form">
+            <input type="hidden" name="emoji" value={emoji} />
+            <button type="submit" class={`reaction-btn ${selected ? 'selected' : ''}`} aria-label={`React with ${emoji}`}>
+              <span class="reaction-emoji">{emoji}</span>
+              {count > 0 && <span class="reaction-count">{count}</span>}
+            </button>
+          </form>
+        );
+      })}
+    </div>
+
+    {!user && (
+      <p style="margin-top: 12px; color: var(--text-muted);">
+        <a href="/login">Log in</a> to leave a reaction.
+      </p>
+    )}
+  </section>
 
   <section id="comments">
     <h2 class="section-title">Comments ({postComments.length})</h2>

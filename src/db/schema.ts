@@ -24,3 +24,11 @@ export const comments = sqliteTable('comments', {
   content: text('content').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+export const reactions = sqliteTable('reactions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  postId: integer('post_id').notNull().references(() => posts.id),
+  authorId: integer('author_id').notNull().references(() => users.id),
+  emoji: text('emoji').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

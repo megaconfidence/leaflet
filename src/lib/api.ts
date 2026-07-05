@@ -128,6 +128,7 @@ app.post('/api/posts/:id/delete', async (c) => {
     return c.redirect('/dashboard?error=not_found');
   }
 
+  db.delete(schema.reactions).where(eq(schema.reactions.postId, postId)).run();
   db.delete(schema.comments).where(eq(schema.comments.postId, postId)).run();
   db.delete(schema.posts).where(eq(schema.posts.id, postId)).run();
 
@@ -149,4 +150,40 @@ app.post('/api/posts/:id/comments', async (c) => {
   db.insert(schema.comments).values({ postId, authorId: user.id, content }).run();
 
   return c.redirect(`/posts/${postId}#comments`);
+});
+
+export const ALLOWED_REACTIONS = ['❤️', '👍', '🎉', '😂', '🤔', '🚀'] as const;
+
+app.post('/api/posts/:id/reactions', async (c) => {
+  const user = c.get('user')!;
+  const postId = Number(c.req.param('id'));
+  const post = db.select().from(schema.posts).where(eq(schema.posts.id, postId)).all();
+  if (!post[0] || post[0].status !== 'published') {
+    return c.redirect('/?error=post_not_found');
+  }
+
+  const body = await c.req.parseBody();
+  const emoji = String(body.emoji || '');
+  if (!ALLOWED_REACTIONS.includes(emoji as typeof ALLOWED_REACTIONS[number])) {
+    return c.redirect(`/posts/${postId}?error=invalid_reaction`);
+  }
+
+  const existing = db
+    .select()
+    .from(schema.reactions)
+    .where(eq(schema.reactions.postId, postId))
+    .where(eq(schema.reactions.authorId, user.id))
+    .all()[0];
+
+  if (existing) {
+    if (existing.emoji === emoji) {
+      db.delete(schema.reactions).where(eq(schema.reactions.id, existing.id)).run();
+    } else {
+      db.update(schema.reactions).set({ emoji }).where(eq(schema.reactions.id, existing.id)).run();
+    }
+  } else {
+    db.insert(schema.reactions).values({ postId, authorId: user.id, emoji }).run();
+  }
+
+  return c.redirect(`/posts/${postId}#reactions`);
 });
